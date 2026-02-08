@@ -1,0 +1,98 @@
+name: Release (manual) - Build, Push, Update Manifests
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: "Qual ambiente atualizar? (staging ou prod)"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - prod
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build_and_push:
+    name: Build & Push Docker images (GHCR)
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - { name: api, image: nexadesk-api, context: apps/api }
+          - { name: worker, image: nexadesk-worker, context: apps/worker }
+          - { name: frontend, image: nexadesk-frontend, context: apps/frontend }
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Definir TAG da release (SHA curto)
+        id: tag
+        run: echo "tag=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Login no GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Push (Docker)
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.service.context }}
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.service.image }}:${{ steps.tag.outputs.tag }}
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.service.image }}:latest
+
+  update_manifests:
+    name: Update Kubernetes manifests (GitOps-style)
+    runs-on: ubuntu-latest
+    needs: build_and_push
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Definir TAG da release (SHA curto)
+        id: tag
+        run: echo "tag=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Atualizar imagens no ambiente selecionado
+        run: |
+          ENV_DIR="environments/${{ inputs.target_env }}"
+          TAG="${{ steps.tag.outputs.tag }}"
+          OWNER="${{ github.repository_owner }}"
+
+          echo "Atualizando manifests em: $ENV_DIR"
+          echo "Nova tag: $TAG"
+
+          # Atualiza as tags das imagens (mantendo o nome da imagem igual)
+          # Requer que os manifests tenham as imagens com estes nomes:
+          # ghcr.io/OWNER/nexadesk-api:...
+          # ghcr.io/OWNER/nexadesk-worker:...
+          # ghcr.io/OWNER/nexadesk-frontend:...
+
+          find "$ENV_DIR" -type f \( -name "*.yaml" -o -name "*.yml" \) -print0 | while IFS= read -r -d '' file; do
+            sed -i "s|ghcr.io/${OWNER}/nexadesk-api:[A-Za-z0-9._-]*|ghcr.io/${OWNER}/nexadesk-api:${TAG}|g" "$file"
+            sed -i "s|ghcr.io/${OWNER}/nexadesk-worker:[A-Za-z0-9._-]*|ghcr.io/${OWNER}/nexadesk-worker:${TAG}|g" "$file"
+            sed -i "s|ghcr.io/${OWNER}/nexadesk-frontend:[A-Za-z0-9._-]*|ghcr.io/${OWNER}/nexadesk-frontend:${TAG}|g" "$file"
+          done
+
+      - name: Commit e push das mudanças de manifests
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add environments/${{ inputs.target_env }}
+          git commit -m "chore(gitops): promote ${{
+            inputs.target_env }} to ${{ steps.tag.outputs.tag }}" || echo "Sem mudanças para commitar"
+          git push
