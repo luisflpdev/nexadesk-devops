@@ -1,0 +1,8 @@
+{
+  "name": "worker",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo \"no tests\"",
+    "lint": "echo \"no lint\""
+  }
+}
