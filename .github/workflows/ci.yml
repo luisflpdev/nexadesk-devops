@@ -24,22 +24,13 @@ jobs:
           cache: "npm"
           cache-dependency-path: apps/api/package-lock.json
 
-      - name: Verificar se existe package.json
-        id: api_pkg
-        run: |
-          if [ -f package.json ]; then echo "has_pkg=true" >> $GITHUB_OUTPUT; else echo "has_pkg=false" >> $GITHUB_OUTPUT; fi
-
-      - name: Instalar dependências (ci se tiver lockfile)
-        if: steps.api_pkg.outputs.has_pkg == 'true'
-        run: |
-          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      - name: Instalar dependências
+        run: npm install
 
       - name: Rodar lint
-        if: steps.api_pkg.outputs.has_pkg == 'true'
         run: npm run lint --if-present
 
       - name: Rodar testes
-        if: steps.api_pkg.outputs.has_pkg == 'true'
         run: npm test --if-present
 
   worker_ci:
@@ -59,26 +50,17 @@ jobs:
           cache: "npm"
           cache-dependency-path: apps/worker/package-lock.json
 
-      - name: Verificar se existe package.json
-        id: worker_pkg
-        run: |
-          if [ -f package.json ]; then echo "has_pkg=true" >> $GITHUB_OUTPUT; else echo "has_pkg=false" >> $GITHUB_OUTPUT; fi
-
-      - name: Instalar dependências (ci se tiver lockfile)
-        if: steps.worker_pkg.outputs.has_pkg == 'true'
-        run: |
-          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      - name: Instalar dependências
+        run: npm install
 
       - name: Rodar lint
-        if: steps.worker_pkg.outputs.has_pkg == 'true'
         run: npm run lint --if-present
 
       - name: Rodar testes
-        if: steps.worker_pkg.outputs.has_pkg == 'true'
         run: npm test --if-present
 
   frontend_ci:
-    name: Frontend - Lint, Test & Build
+    name: Frontend - Build
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -94,24 +76,8 @@ jobs:
           cache: "npm"
           cache-dependency-path: apps/frontend/package-lock.json
 
-      - name: Verificar se existe package.json
-        id: fe_pkg
-        run: |
-          if [ -f package.json ]; then echo "has_pkg=true" >> $GITHUB_OUTPUT; else echo "has_pkg=false" >> $GITHUB_OUTPUT; fi
-
-      - name: Instalar dependências (ci se tiver lockfile)
-        if: steps.fe_pkg.outputs.has_pkg == 'true'
-        run: |
-          if [ -f package-lock.json ]; then npm ci; else npm install; fi
-
-      - name: Rodar lint
-        if: steps.fe_pkg.outputs.has_pkg == 'true'
-        run: npm run lint --if-present
-
-      - name: Rodar testes
-        if: steps.fe_pkg.outputs.has_pkg == 'true'
-        run: npm test --if-present
+      - name: Instalar dependências
+        run: npm install
 
       - name: Build do frontend
-        if: steps.fe_pkg.outputs.has_pkg == 'true'
         run: npm run build --if-present
