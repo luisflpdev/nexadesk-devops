@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: ghcr.io/luisflpdev/nexadesk-frontend:latest
+          image: ghcr.io/luisflpdev/nexadesk-frontend:7953106
           imagePullPolicy: Always
 
           ports:
