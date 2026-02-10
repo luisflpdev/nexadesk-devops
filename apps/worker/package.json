@@ -1,8 +1,24 @@
 {
-  "name": "worker",
+  "name": "nexadesk-worker",
   "version": "1.0.0",
+  "description": "NexaDesk Worker service (Node.js) with structured logs and Prometheus metrics",
+  "main": "src/index.js",
+  "type": "commonjs",
   "scripts": {
-    "test": "echo \"no tests\"",
-    "lint": "echo \"no lint\""
+    "dev": "node src/index.js",
+    "start": "node src/index.js",
+    "lint": "eslint .",
+    "test": "jest --runInBand"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "pino": "^9.2.0",
+    "prom-client": "^15.1.2"
+  },
+  "devDependencies": {
+    "eslint": "^9.9.0",
+    "jest": "^29.7.0"
   }
 }

@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nexadesk
+  namespace: nexadesk-prod
+  labels:
+    app.kubernetes.io/name: nexadesk
+    app.kubernetes.io/environment: prod
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+    - host: nexadesk.local
+      http:
+        paths:
+          # API
+          - path: /api(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: nexadesk-api
+                port:
+                  number: 80
+
+          # Frontend (SPA)
+          - path: /(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: nexadesk-frontend
+                port:
+                  number: 80

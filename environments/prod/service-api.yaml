@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexadesk-api
+  namespace: nexadesk-prod
+  labels:
+    app.kubernetes.io/name: nexadesk
+    app.kubernetes.io/component: api
+    app.kubernetes.io/environment: prod
+spec:
+  type: ClusterIP
+  selector:
+    app: nexadesk-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000

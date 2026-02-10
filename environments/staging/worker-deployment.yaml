@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexadesk-worker
+  namespace: nexadesk-staging
+  labels:
+    app.kubernetes.io/name: nexadesk
+    app.kubernetes.io/component: worker
+    app.kubernetes.io/environment: staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nexadesk-worker
+  template:
+    metadata:
+      labels:
+        app: nexadesk-worker
+        app.kubernetes.io/name: nexadesk
+        app.kubernetes.io/component: worker
+        app.kubernetes.io/environment: staging
+    spec:
+      containers:
+        - name: worker
+          image: ghcr.io/luisflpdev/nexadesk-worker:latest
+          imagePullPolicy: Always
+
+          ports:
+            - name: metrics
+              containerPort: 9090
+
+          env:
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: nexadesk-config
+                  key: NODE_ENV
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: nexadesk-config
+                  key: LOG_LEVEL
+
+            - name: METRICS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: nexadesk-config
+                  key: WORKER_METRICS_PORT
+            - name: JOB_INTERVAL_MS
+              valueFrom:
+                configMapKeyRef:
+                  name: nexadesk-config
+                  key: WORKER_JOB_INTERVAL_MS
+            - name: SERVICE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: nexadesk-config
+                  key: WORKER_SERVICE_NAME
+
+            - name: APP_VERSION
+              value: "0.1.0"
+            - name: GIT_SHA
+              value: "manual"
+
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"

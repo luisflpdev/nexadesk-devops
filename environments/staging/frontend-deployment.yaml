@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexadesk-frontend
+  namespace: nexadesk-staging
+  labels:
+    app.kubernetes.io/name: nexadesk
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/environment: staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nexadesk-frontend
+  template:
+    metadata:
+      labels:
+        app: nexadesk-frontend
+        app.kubernetes.io/name: nexadesk
+        app.kubernetes.io/component: frontend
+        app.kubernetes.io/environment: staging
+    spec:
+      containers:
+        - name: frontend
+          image: ghcr.io/luisflpdev/nexadesk-frontend:latest
+          imagePullPolicy: Always
+
+          ports:
+            - name: http
+              containerPort: 80
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"

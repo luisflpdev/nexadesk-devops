@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexadesk-config
+  namespace: nexadesk-prod
+  labels:
+    app.kubernetes.io/name: nexadesk
+    app.kubernetes.io/environment: prod
+data:
+  # Geral
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+
+  # API
+  API_PORT: "3000"
+  API_SERVICE_NAME: "nexadesk-api"
+
+  # Worker
+  WORKER_METRICS_PORT: "9090"
+  WORKER_JOB_INTERVAL_MS: "2000"
+  WORKER_SERVICE_NAME: "nexadesk-worker"
