@@ -102,7 +102,9 @@ loop().catch((err) => {
 
 // ===== Graceful shutdown =====
 async function shutdown(signal) {
-  if (isShuttingDown) return;
+  if (isShuttingDown) {
+    return;
+  }
   isShuttingDown = true;
 
   logger.warn({ msg: 'shutdown_start', signal });
@@ -121,6 +123,8 @@ async function shutdown(signal) {
     logger.info({ msg: 'shutdown_complete' });
     process.exit(0);
   }, 1000).unref();
+
+  return;
 }
 
 process.on('SIGTERM', shutdown);

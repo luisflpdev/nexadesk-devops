@@ -107,7 +107,8 @@ app.use((req, res) => {
 });
 
 // Error handler
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
+  void _next;
   logger.error({ err }, 'unhandled_error');
   res.status(500).json({ error: 'internal_error' });
 });
