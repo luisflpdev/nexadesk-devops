@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: ghcr.io/luisflpdev/nexadesk-api:latest
+          image: ghcr.io/luisflpdev/nexadesk-api:f9a12e9
           imagePullPolicy: Always
 
           ports:

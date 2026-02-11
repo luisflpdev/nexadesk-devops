@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: worker
-          image: ghcr.io/luisflpdev/nexadesk-worker:latest
+          image: ghcr.io/luisflpdev/nexadesk-worker:f9a12e9
           imagePullPolicy: Always
 
           ports:
